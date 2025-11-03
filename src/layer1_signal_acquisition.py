@@ -1,20 +1,29 @@
-# Signal acquisition module for preprocessing system telemetry data
-import psutil
-import time
+"""
+Layer 1: Signal Acquisition & Preprocessing
+Basic CLI: either stream to stdout or write to data/telemetry.jsonl
+"""
+import argparse
 import json
+from pathlib import Path
+from src.utils.telemetry_collectors import stream_system_metrics
+from src.utils.logging_manager import log_event
 
-def collect_system_metrics():
-    """Collects basic system telemetry."""
-    metrics = {
-        "cpu_percent": psutil.cpu_percent(interval=1),
-        "memory_percent": psutil.virtual_memory().percent,
-        "disk_usage": psutil.disk_usage('/').percent,
-        "network_io": psutil.net_io_counters()._asdict()
-    }
-    return metrics
+DATA_DIR = Path("data")
+DATA_DIR.mkdir(exist_ok=True)
+
+def run_collector(poll_interval: float = 1.0, write_file: bool = True):
+    gen = stream_system_metrics(poll_interval=poll_interval)
+    for i, sample in enumerate(gen):
+        # write to file for downstream consumption
+        if write_file:
+            log_event(sample, filename="telemetry.jsonl")
+        print(json.dumps(sample))
+        if i and i >= 9999:
+            break  # safety guard
 
 if __name__ == "__main__":
-    while True:
-        data = collect_system_metrics()
-        print(json.dumps(data, indent=2))
-        time.sleep(5)
+    parser = argparse.ArgumentParser(description="Run telemetry collector (Layer 1)")
+    parser.add_argument("--interval", type=float, default=1.0, help="poll interval in seconds")
+    parser.add_argument("--no-write", dest="write_file", action="store_false", help="do not write to data file")
+    args = parser.parse_args()
+    run_collector(poll_interval=args.interval, write_file=args.write_file)

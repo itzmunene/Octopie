@@ -1,0 +1,15 @@
+version: "3.9"
+
+services:
+  digital-immune-system:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: digital_immune_system_dev
+    volumes:
+      - .:/workspace
+    working_dir: /workspace
+    environment:
+      - PYTHONUNBUFFERED=1
+    command: bash
+    tty: true
