@@ -1,0 +1,36 @@
+%%{init: {'theme': 'neutral'}}%%
+graph TD
+    A1[Pathogen Entry] --> B1[Host Sensors - Pattern Recognition Receptors]
+    B1 -->|Telemetry Stream| C1[Layer 1: Signal Acquisition - System Telemetry Capture]
+    C1 -->|Feature Encoding| D1[Layer 2: Innate Detection - One-Class Models]
+    D1 -->|Flagged Suspicious Activity| E1[Layer 3: Adaptive Detection - Contextual Classifiers]
+    E1 -->|Scored Responses| F1[Layer 4: Response Containment - Automated Mitigation]
+    F1 -->|Incident Logs| G1[Layer 5: Memory & Learning - Continual Retraining]
+    G1 -->|Feedback Updates| D1
+    G1 -->|Heuristic Sync| C1
+
+    subgraph PathogenTypes
+        V[Virus - polymorphic malware]
+        B[Bacteria - repeated phishing variants]
+        F[Fungi - slow persistent exploits]
+        P[Parasite - rootkits & supply-chain compromises]
+    end
+
+    A1 --> V
+    A1 --> B
+    A1 --> F
+    A1 --> P
+
+    classDef entry fill:#8fbcbb,stroke:#2e3440,stroke-width:2px,color:#2e3440;
+    classDef sensing fill:#88c0d0,stroke:#2e3440,stroke-width:2px,color:#2e3440;
+    classDef detection fill:#a3be8c,stroke:#2e3440,stroke-width:2px,color:#2e3440;
+    classDef response fill:#ebcb8b,stroke:#2e3440,stroke-width:2px,color:#2e3440;
+    classDef memory fill:#b48ead,stroke:#2e3440,stroke-width:2px,color:#2e3440;
+
+    class A1 entry;
+    class B1 sensing;
+    class C1 sensing;
+    class D1 detection;
+    class E1 detection;
+    class F1 response;
+    class G1 memory;

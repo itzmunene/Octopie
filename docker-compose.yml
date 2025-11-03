@@ -5,7 +5,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: digital_immune_system_dev
+    container_name: Octopie
+    image: octopie:0.0.1
     volumes:
       - .:/workspace
     working_dir: /workspace

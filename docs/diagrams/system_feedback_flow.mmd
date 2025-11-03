@@ -1,0 +1,23 @@
+%%{init: {'theme': 'neutral'}}%%
+graph TD
+    A1[Layer 1: Signal Acquisition] -->|Telemetry Stream| B2[Layer 2: Innate Detection]
+    B2 -->|Flagged Anomalies| C3[Layer 3: Adaptive Detection]
+    C3 -->|Context-Aware Scoring| D4[Layer 4: Response & Containment]
+    D4 -->|Containment Logs| E5[Layer 5: Memory & Learning]
+    E5 -->|Retraining Feedback| C3
+    E5 -->|Heuristic Updates| B2
+
+    subgraph FeedbackLoop
+        E5 -->|Knowledge Sync - Federated| A1
+    end
+
+    classDef data fill:#88c0d0,stroke:#2e3440,stroke-width:2px,color:#2e3440;
+    classDef analysis fill:#a3be8c,stroke:#2e3440,stroke-width:2px,color:#2e3440;
+    classDef response fill:#ebcb8b,stroke:#2e3440,stroke-width:2px,color:#2e3440;
+    classDef learning fill:#b48ead,stroke:#2e3440,stroke-width:2px,color:#2e3440;
+
+    class A1 data;
+    class B2 analysis;
+    class C3 analysis;
+    class D4 response;
+    class E5 learning;
