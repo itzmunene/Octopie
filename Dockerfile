@@ -12,18 +12,19 @@ RUN apt-get update && apt-get install -y \
 # Set up working directory
 WORKDIR /workspace
 
-# Copy requirements (only these first for caching)
+# Copy requirements first for Docker layer caching
 COPY requirements.txt .
 
 # Install Python dependencies
 RUN pip install --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
-# Copy rest of the project
+# Copy the rest of the project
 COPY . .
 
-# Set default user
+# Create a non-root user (recommended for dev containers)
 RUN useradd -ms /bin/bash vscode
 USER vscode
 
-CMD [ "bash" ]
+# Default command opens a bash shell
+CMD ["bash"]
