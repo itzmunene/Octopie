@@ -1,0 +1,48 @@
+%%{init: {'theme': 'neutral'}}%%
+graph TD
+  subgraph Device_Agent
+    A1[Layer 1 Signal Acquisition]
+    A2[Layer 2 Innate Detection]
+    A3[Layer 3 Adaptive Detection]
+    A4[Layer 4 Response and Containment]
+    A5[Layer 5 Memory and Learning]
+    DB_local[Local DB Agent SQLite]
+  end
+
+  subgraph Sync_Node
+    S1[Update Node Sync Service]
+    S2[Lightweight Cache and Queue]
+  end
+
+  subgraph Central_Analytics
+    CDB[Central DB DuckDB]
+    Trainer[Model Training and Analytics]
+    VectorDB[Optional Vector Store]
+    API[Threat Intelligence API]
+  end
+
+  %% Data flows
+  A1 -->|telemetry| A2
+  A2 -->|alerts| A3
+  A3 -->|risk score| A4
+  A4 -->|incident log| A5
+  A5 -->|store memory| DB_local
+
+  DB_local -->|periodic delta push| S1
+  S1 -->|ingest| CDB
+  S1 -->|enqueue| S2
+  CDB -->|data for training| Trainer
+  Trainer -->|models and deltas| S1
+  S1 -->|model updates| DB_local
+  Trainer -->|vector artefacts| VectorDB
+  API -->|external TI feeds| S1
+  API -->|external feeds| Trainer
+
+  %% styling
+  classDef device fill:#88c0d0,stroke:#2e3440,stroke-width:1px,color:#2e3440;
+  classDef sync fill:#ebcb8b,stroke:#2e3440,stroke-width:1px,color:#2e3440;
+  classDef central fill:#b48ead,stroke:#2e3440,stroke-width:1px,color:#2e3440;
+
+  class A1,A2,A3,A4,A5,DB_local device;
+  class S1,S2 sync;
+  class CDB,Trainer,VectorDB,API central;
