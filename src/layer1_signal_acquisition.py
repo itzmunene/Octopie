@@ -27,3 +27,15 @@ if __name__ == "__main__":
     parser.add_argument("--no-write", dest="write_file", action="store_false", help="do not write to data file")
     args = parser.parse_args()
     run_collector(poll_interval=args.interval, write_file=args.write_file)
+
+# Conceptual function to be used by layer2_innate_detection.py
+def read_telemetry_jsonl(file_path: Path):
+    """Reads records from a JSON Lines file."""
+    records = []
+    try:
+        with open(file_path, 'r') as f:
+            for line in f:
+                records.append(json.loads(line))
+    except FileNotFoundError:
+        print(f"Error: Telemetry file not found at {file_path}")
+    return records

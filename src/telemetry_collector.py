@@ -31,4 +31,13 @@ def collect_resource_telemetry(interval=5):
     # Sort and take the top 5 processes by CPU usage for context
     top_processes = sorted(processes, key=lambda x: x['cpu_percent'], reverse=True)[:5]
     
+# 3. Create the Telemetry Data Object
+    telemetry_record = {
+        'timestamp': datetime.now().isoformat(),
+        'system_cpu_total_percent': cpu_percent,
+        'system_memory_used_percent': mem_percent,
+        'process_count_total': len(pids),
+        'top_processes': top_processes
+    }
     
+    return telemetry_record
