@@ -5,11 +5,11 @@ scikit-learn==1.5.2
 matplotlib==3.8.1
 jupyterlab==4.4.3
 pytest==7.4.2
-seaborn==0.12.3
-pandas-profiling==5.2.0
+seaborn>=0.13.0
+ydata-profiling
 # Optional: add when you implement adaptive models
 torch==2.2.0  # optional - required for PyTorch models
-tensorflow==2.14.0  # optional - if you prefer TF
+tensorflow>=2.16.1  # optional - if you prefer TF
 # Federated research stack (optional)
 # pysyft==0.7.0
 
