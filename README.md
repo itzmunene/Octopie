@@ -15,25 +15,34 @@ We’re borrowing ideas from immunology and machine learning to create an **adap
 
 ---
 
+✨ Adaptive Antimalware Framework (PoC)
+======================================
+
+This README section outlines the project's conceptual architecture and documents the recent changes implemented to establish a modular, production-ready development environment.
+
+* * * * *
+
 ## ⚙️ How It Works
+---------------
 
-Think of your computer as a body. Each layer of this digital immune system plays the role of a biological counterpart:
+Mapping the human body defense to a computer. Each layer of this digital immune system plays the role of a biological counterpart:
 
-| 🧩 Biological Function | 💻 Cybersecurity Role | 🔬 Implementation Layer |
-|------------------------|----------------------|--------------------------|
-| Sensory Receptors | Collect system telemetry | Layer 1: Signal Acquisition |
-| Innate Immunity | Heuristic & NSA detection | Layer 2: Innate Detection |
-| Adaptive Immunity | ML-based analysis | Layer 3: Adaptive Detection |
-| Inflammatory Response | Quarantine & rollback | Layer 4: Response & Containment |
-| Memory Cells | Reinforcement & federated learning | Layer 5: Memory & Learning |
+| **🧩 Biological Function** | **💻 Cybersecurity Role** | **🔬 Implementation Layer** |
+|           ---              |            ---            |             ---             |
+| **Sensory Receptors**      | Collect system telemetry  | Layer 1: Signal Acquisition |
+| **Innate Immunity**        | Heuristic & NSA detection |   Layer 2: Innate Detection |
+| **Adaptive Immunity**      |      ML-based analysis    |  ayer 3: Adaptive Detection |
+| **Inflammatory Response**  |   Quarantine & rollback   | Layer 4: Response & Containment |
+| **Memory Cells**           | Reinforcement & federated learning | Layer 5: Memory & Learning |
 
----
+* * * * *
 
 ## 🧩 The System Architecture (In a Nutshell)
-
-```mermaid
+------------------------------------------
+The system enforces a strict, unidirectional data pipeline that mirrors biological escalation paths.
+```
 graph TD
-  A[Signal Acquisition Layer] --> B[Innate Detection Layer]
+  A [Signal Acquisition Layer] --> B[Innate Detection Layer]
   B --> C[Adaptive Detection Layer]
   C --> D[Response & Containment Layer]
   D --> E[Memory & Learning Layer]
@@ -50,4 +59,67 @@ graph TD
   C --- C1
   D --- D1
   E --- E1
-  linkStyle 0,1,2,3,4 stroke:#2962FF,stroke-width:2px
+  linkStyle 0,1,2,3,4 stroke:#2962FF,stroke-width:2p
+
+```
+
+* * * * *
+
+## 🛠️ III. Recent Changes and Modularization
+------------------------------------------
+Structure has been updated for stability, controlled module importing, and strict separation of concerns between layers.
+
+### 1\. Environment and Utility Additions
+
+These files manage dependencies and provide critical shared functionality.
+
+-   **`venv/` (Virtual Environment)**
+
+    -   **Purpose:** Ensures project dependencies (`psutil`, `scikit-learn`, etc.) are isolated from the global system environment-also a working testing environment
+
+-   **`requirements.txt`**
+
+| **Old Version (Problematic)** | **New Recommended Version** | **Reason for Change** |
+| --- | --- | --- |
+| **`seaborn==0.12.3`** | **`seaborn>=0.13.0`** (or just `seaborn`) | Version **0.12.3** does not have wheels for **Python 3.12**. |
+| **`pandas-profiling==5.2.0`** | **`ydata-profiling`** (no version pin) | The `pandas-profiling` project has been **renamed** to `ydata-profiling`. |
+| **`tensorflow==2.14.0`** | **`tensorflow>=2.16.1`** (or just `tensorflow`) | Version **2.14.0** does not support **Python 3.12**. |
+
+
+-   **`setup.py`**
+
+    -   **Purpose:** Defines the project as a package. Allows installation in **Editable Mode** (`pip install -e .`), which is essential for resolving module imports like `from src.utils...`.
+
+-   **`src/utils/telemetry_collectors.py`** (Core Layer 1 Utility)
+
+    -   **Purpose:** **The Data Generator.** Contains the actual code (e.g., `collect_basic_system_metrics`) that interfaces with the OS (`psutil`) to pull raw resource usage data. It forms the backbone of Layer 1.
+
+-   **`src/utils/data_reader.py`** (NEW Utility Module)
+
+    -   **Purpose:** **The Data Bridge.** Contains the `read_telemetry_jsonl` function. This utility is used by Layer 2 to consume data saved by Layer 1, enforcing separation.
+
+### 2\. Layer Code Refactoring
+
+The core change is making Layer 2 entirely dependent on Layer 1's output, removing redundant data collection logic.
+
+#### A. `layer1_signal_acquisition.py` (Layer 1)
+
+-   **Status:** **Stable.** No functional code changes.
+
+-   **Role:** Remains the single **source of truth** for telemetry data, writing raw JSON records to `data/telemetry.jsonl`.
+
+#### B. `layer2_innate_detection.py` (Layer 2)
+
+-   **Functional Change:** The function `collect_baseline` was **REMOVED**.
+
+    -   **Rationale:** Eliminates redundancy. Layer 2 is now purely a data *processor* (ML layer), not a data *collector*.
+
+-   **New Dependency:** Imports `read_telemetry_jsonl` from the new `src/utils/data_reader.py` file.
+
+-   **Revised Training:** The `train_oneclass_svm` function was updated to:
+
+    1.  Call `read_telemetry_jsonl` to load the baseline.
+
+    2.  Process the loaded data for training the One-Class SVM.
+
+-   **Argument Removal:** Command-line arguments (`--samples`, `--interval`) were removed as they are no longer relevant for a processor layer.

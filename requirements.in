@@ -8,8 +8,7 @@ pytest==7.4.2
 seaborn>=0.13.0
 ydata-profiling
 # Optional: add when you implement adaptive models
-torch==2.2.0  # optional - required for PyTorch models
-tensorflow>=2.16.1  # optional - if you prefer TF
+torch==2.2.0
+tensorflow>=2.16.1
 # Federated research stack (optional)
 # pysyft==0.7.0
-
