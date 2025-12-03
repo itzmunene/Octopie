@@ -5,7 +5,7 @@ Basic CLI: either stream to stdout or write to data/telemetry.jsonl
 import argparse
 import json
 from pathlib import Path
-from src.utils.telemetry_collectors import stream_system_metrics
+from src.utils.telemetry_collectors import stream_system_metrics # type: ignore 
 from src.utils.logging_manager import log_event
 
 DATA_DIR = Path("data")

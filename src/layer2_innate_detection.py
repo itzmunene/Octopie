@@ -11,7 +11,7 @@ from sklearn.svm import OneClassSVM # type: ignore
 # Assumed utility functions
 from src.utils.feature_encoder import telemetry_to_vector, batch_to_dataframe
 from src.utils.data_reader import read_telemetry_jsonl  # <--- NEW
-from src.utils.telemetry_collectors import collect_basic_system_metrics # Keep this for live mode simplicity for now
+from src.utils.telemetry_collectors import stream_system_metrics # Used for live mode data streaming
 from src.utils.model_loader import save_model, load_model
 from src.utils.logging_manager import log_event
 
@@ -54,6 +54,6 @@ if __name__ == "__main__":
     if args.train:
         train_oneclass_svm() # No more arguments needed
     elif args.live:
-        live_mode()
+        live_mode() # type: ignore
     else:
         parser.print_help()
