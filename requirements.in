@@ -1,14 +1,12 @@
-psutil==5.9.5
-pandas==2.2.2
-numpy==1.26.4
-scikit-learn==1.5.2
-matplotlib==3.8.1
-jupyterlab==4.4.3
-pytest==7.4.2
-seaborn>=0.13.0
-ydata-profiling
-# Optional: add when you implement adaptive models
-torch==2.2.0
-tensorflow>=2.16.1
-# Federated research stack (optional)
-# pysyft==0.7.0
+# requirements.in
+
+# --- Core Foundation ---
+-r requirements-base.in
+
+# --- Layer-Specific Dependencies (Uncomment as needed for development) ---
+-r requirements-layer1.in
+-r requirements-layer2.in
+#-r requirements-layer3-5.in   # Keep commented until ready for DL development
+
+# --- Development & Testing Tools (Keep separate from final distribution) ---
+-r requirements-dev.in

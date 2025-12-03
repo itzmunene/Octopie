@@ -1,0 +1,6 @@
+# requirements-base.in
+# Core system and data handling for all layers
+psutil
+pandas
+numpy
+scipy # Required by pandas, scikit-learn, etc.

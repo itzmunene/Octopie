@@ -123,3 +123,33 @@ The core change is making Layer 2 entirely dependent on Layer 1's output, removi
     2.  Process the loaded data for training the One-Class SVM.
 
 -   **Argument Removal:** Command-line arguments (`--samples`, `--interval`) were removed as they are no longer relevant for a processor layer.
+
+
+### UPDATED REQUIREMENTS FILES
+
+The recent changes were focused on creating a **robust, non-conflicting dependency environment** and strictly enforcing the modular pipeline structure .
+
+1\. Dependency Isolation Strategy 📦
+------------------------------------
+
+The monolithic `requirements.in` file was broken down into a layered structure to prevent compatibility issues, particularly between the heavy **Deep Learning stack** and the core data libraries.
+
+| **New File** | **Purpose** | **Key Libraries** | **Rationale** |
+| --- | --- | --- | --- |
+| **`requirements-base.in`** | **Core Foundation.** Essential libraries for all layers and data manipulation. | `psutil`, `pandas`, `numpy` | Must be installed first. |
+| **`requirements-layer1.in`** | **Acquisition Tools.** Required for system profiling and data analysis within Layer 1. | `ydata-profiling` | Isolated due to its large, complex transitive dependency tree. |
+| **`requirements-layer2.in`** | **Innate Detection.** Minimal ML dependencies for the One-Class SVM. | `scikit-learn` | Kept light and separate from the deep learning tools. |
+| **`requirements-layer3-5.in`** | **Deep Learning Stack.****HEAVY** libraries for Adaptive Detection and Memory/Learning. | `torch`, `tensorflow` | **Crucially isolated** as they cause the most version conflicts with each other and core packages. |
+
+This strategy ensures that during initial development (Layers 1 and 2), you only install necessary, lightweight packages, avoiding hours of dependency resolution conflicts.
+
+2\. Layer 2 Role Clarification 🧱
+---------------------------------
+
+The second major change was to the code, reinforcing Layer 2's role as a processor:
+
+-   **`collect_baseline` Function Removed:** Layer 2 no longer generates its own data.
+
+-   **New Utility:** The addition of `src/utils/data_reader.py` (containing `read_telemetry_jsonl`) now forces Layer 2 to **consume** the `data/telemetry.jsonl` file created by Layer 1.
+
+This creates a clean, non-redundant pipeline: **Layer 1 collects data, Layer 2 analyzes that collected data.**

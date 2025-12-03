@@ -1,0 +1,6 @@
+# requirements-dev.in
+# Development, Testing, and Visualization Tools
+jupyterlab
+matplotlib
+seaborn
+pytest

@@ -1,0 +1,5 @@
+# requirements-layer3-5.in
+# Adaptive Detection (Layer 3) and Memory/Learning (Layer 5)
+torch==2.2.0
+tensorflow>=2.16.1
+# Note: Keras, h5py, etc., will be pulled in transitively.
