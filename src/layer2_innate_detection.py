@@ -43,17 +43,73 @@ def train_oneclass_svm(nu=0.05, kernel="rbf", gamma="scale"): # Removed 'records
 # ... (score_sample function remains the same) ...
 
 # ... (live_mode function remains the same, still collecting data for PoC simplicity) ...
+def live_mode():
+    """
+    Runs a live loop, collecting new metrics and scoring them instantly
+    using the trained OCSVM model.
+    """
+    print(f"[layer2] Starting live detection using model: {MODEL_NAME}...")
+    
+    try:
+        # Load the saved model
+        model = load_model(MODEL_NAME)
+    except FileNotFoundError:
+        print(f"[ERROR] Model file not found at {MODEL_PATH}. Run with --train first.")
+        return
+
+    # Use the generator function imported from telemetry_collectors
+    telemetry_stream = stream_system_metrics(poll_interval=1.0) 
+    
+    print("[layer2] Streaming and Scoring Live Data (Ctrl+C to stop)...")
+
+    for sample in telemetry_stream:
+        # 1. Convert the single sample to a feature vector (X)
+        # FIX: Use the confirmed working batch_to_dataframe function
+        # It handles converting a list of dicts ([sample]) into a DataFrame 
+        # and then extracts the 2D numpy array required by Scikit-learn.
+        df_sample = batch_to_dataframe([sample])
+        X_sample = df_sample.values
+        
+        # 2. Score the sample using the OCSVM model
+        score = model.decision_function(X_sample)[0]
+        prediction = model.predict(X_sample)[0] # 1 (normal) or -1 (anomaly)
+        
+        # 3. Format and print the detection output
+        status = "ANOMALY" if prediction == -1 else "NORMAL"
+        
+        output = {
+            "timestamp": sample.get("timestamp"),
+            "anomaly_score": round(float(score), 4),
+            "prediction": status,
+            "raw_prediction_value": int(prediction)
+        }
+        
+        # Log and print the event
+        print(json.dumps(output))
+
+
+# ... (all imports, global variables, and function definitions: 
+#      train_oneclass_svm and live_mode) ...
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Layer 2 - Innate Detection (One-Class SVM)")
     parser.add_argument("--train", action="store_true", help="Train model using data collected by Layer 1")
-    # Removed: --samples and --interval arguments
     parser.add_argument("--live", action="store_true", help="Run live scoring loop")
     args = parser.parse_args()
+    
+    # ------------------------------------------------
+    # CORRECT CONTROL FLOW BLOCK
+    # ------------------------------------------------
+    if args.train:
+        train_oneclass_svm() # No more arguments needed
+    elif args.live:
+        live_mode()  # type: ignore
+    else:
+        parser.print_help()
 
     if args.train:
         train_oneclass_svm() # No more arguments needed
     elif args.live:
-        live_mode() # type: ignore
+        live_mode()
     else:
         parser.print_help()
