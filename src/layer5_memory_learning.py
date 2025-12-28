@@ -1,52 +1,34 @@
-# src/layer5_memory_learning.py
+# src/layer5_memory_learning.py (Refined for Hybrid DB)
 
-import json
 import pandas as pd
 from sklearn.svm import OneClassSVM
 import joblib
+from src.database.hybrid_store import store
 
-LEDGER_FILE = "logs/executive_audit_ledger.jsonl"
 MODEL_PATH = "models/innate_ocsvm.pkl"
 
-def evolutionary_update():
-    """
-    Layer 5: Memory & Learning.
-    Consumes the ledger to refine the Innate Detection (L2) model.
-    """
-    print("[L5/LEARNING] Accessing Long-Term Memory (Ledger)...")
+def evolve_from_memory():
+    print("[L5/EVOLUTION] Querying hybrid database for verified benign patterns...")
     
-    events = []
-    try:
-        with open(LEDGER_FILE, "r") as f:
-            for line in f:
-                events.append(json.loads(line))
-    except FileNotFoundError:
-        print("[L5/LEARNING] No memory found. Evolution suspended.")
+    # Query the store for the latest 500 'Normal' events
+    batch = store.get_learning_batch(limit=500)
+    
+    if len(batch) < 20:
+        print("[L5/EVOLUTION] Memory too shallow. Need more experience to evolve.")
         return
 
-    # Filter for events that were classified as 'NORMAL' or 'NOISE/TWEAK'
-    # These are our 'New Truths' to learn from.
-    df = pd.DataFrame(events)
-    learning_pool = df[df['L3_contextual_status'].isin(['NORMAL', 'NOISE/TWEAK'])]
-
-    if len(learning_pool) < 10:
-        print("[L5/LEARNING] Insufficient new data to guarantee stable learning.")
-        return
-
-    print(f"[L5/LEARNING] Retraining Innate Model with {len(learning_pool)} new contextually-verified samples...")
+    # Convert to DataFrame for training
+    df_learning = pd.DataFrame(batch, columns=['cpu_percent', 'memory_percent'])
     
-    # Extract raw features used in L1/L2
-    features = ['cpu_percent', 'memory_percent', 'net_io_sent', 'net_io_recv']
-    X_new = learning_pool[features]
-
-    # Federated/Incremental Update Logic (Simulated)
-    # In a full implementation, we would use partial_fit or an Incremental Learner
+    print(f"[L5/EVOLUTION] Integrating {len(df_learning)} experiences into the Innate Model...")
+    
+    # Retrain (or adapt) the model
     new_model = OneClassSVM(gamma='auto', nu=0.05)
-    new_model.fit(X_new)
-
-    # Save the evolved model
+    new_model.fit(df_learning)
+    
+    # Update the 'Nervous System'
     joblib.dump(new_model, MODEL_PATH)
-    print("[L5/LEARNING] Evolution complete. L2 model has been updated with new memory.")
+    print("[L5/EVOLUTION] System has evolved. New neural weights deployed to L2.")
 
 if __name__ == "__main__":
-    evolutionary_update()
+    evolve_from_memory()

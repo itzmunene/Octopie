@@ -4,3 +4,4 @@ psutil
 pandas
 numpy
 scipy # Required by pandas, scikit-learn, etc.
+watchdog  # Added for Layer 0 Real-time File Monitoring
