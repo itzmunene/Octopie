@@ -1,6 +1,7 @@
 %%{init: {'theme': 'neutral'}}%%
 graph TD
   subgraph Device_Agent
+    A0[Layer 0 Integrity Monitor]
     A1[Layer 1 Signal Acquisition]
     A2[Layer 2 Innate Detection]
     A3[Layer 3 Adaptive Detection]
@@ -22,11 +23,15 @@ graph TD
   end
 
   %% Data flows
+  A0 -->|integrity alerts| A2
   A1 -->|telemetry| A2
   A2 -->|alerts| A3
   A3 -->|risk score| A4
   A4 -->|incident log| A5
   A5 -->|store memory| DB_local
+
+  %% Layer 0 Lookup
+  DB_local -.->|signature lookup| A0
 
   DB_local -->|periodic delta push| S1
   S1 -->|ingest| CDB
@@ -43,6 +48,6 @@ graph TD
   classDef sync fill:#ebcb8b,stroke:#2e3440,stroke-width:1px,color:#2e3440;
   classDef central fill:#b48ead,stroke:#2e3440,stroke-width:1px,color:#2e3440;
 
-  class A1,A2,A3,A4,A5,DB_local device;
+  class A0,A1,A2,A3,A4,A5,DB_local device;
   class S1,S2 sync;
   class CDB,Trainer,VectorDB,API central;

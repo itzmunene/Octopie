@@ -1,11 +1,15 @@
 %%{init: {'theme': 'neutral'}}%%
 graph TD
-    A1[Layer 1: Signal Acquisition] -->|Telemetry Stream| B2[Layer 2: Innate Detection]
+    A0[Layer 0: Integrity Monitor] -->|Signature Flags| B2[Layer 2: Innate Detection]
+    A1[Layer 1: Signal Acquisition] -->|Telemetry Stream| B2
     B2 -->|Flagged Anomalies| C3[Layer 3: Adaptive Detection]
     C3 -->|Context-Aware Scoring| D4[Layer 4: Response & Containment]
     D4 -->|Containment Logs| E5[Layer 5: Memory & Learning]
-    E5 -->|Retraining Feedback| C3
+    
+    %% Feedback Loops
+    E5 -->|Signature Updates| A0
     E5 -->|Heuristic Updates| B2
+    E5 -->|Retraining Feedback| C3
 
     subgraph FeedbackLoop
         E5 -->|Knowledge Sync - Federated| A1
@@ -16,8 +20,7 @@ graph TD
     classDef response fill:#ebcb8b,stroke:#2e3440,stroke-width:2px,color:#2e3440;
     classDef learning fill:#b48ead,stroke:#2e3440,stroke-width:2px,color:#2e3440;
 
-    class A1 data;
-    class B2 analysis;
-    class C3 analysis;
+    class A0,A1 data;
+    class B2,C3 analysis;
     class D4 response;
     class E5 learning;
