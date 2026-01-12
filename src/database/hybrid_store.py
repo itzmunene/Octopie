@@ -16,9 +16,20 @@ class HybridStore:
     def _init_sqlite(self):
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.cursor()
-            # ... existing executive_ledger table ...
-            
-            # New: Malware Signature Table for Layer 0
+            # The Executive Ledger (Cold Storage)
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS executive_ledger (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    timestamp DATETIME,
+                    cpu_percent REAL,
+                    memory_percent REAL,
+                    anomaly_score REAL,
+                    prediction TEXT,
+                    context_status TEXT,
+                    action_taken TEXT
+                )
+            """)
+            # The Antibody Database (L0)
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS malware_signatures (
                     hash TEXT PRIMARY KEY,
@@ -29,24 +40,53 @@ class HybridStore:
             """)
             conn.commit()
 
-    def add_malware_hash(self, file_hash, threat_name="Unknown", source="Manual"):
-        """Inserts a new signature into the antibody database."""
+    # --- THE SCRIBE: This populates the DB ---
+    def commit_event(self, event_data):
         try:
             with sqlite3.connect(self.db_path) as conn:
                 cursor = conn.cursor()
                 cursor.execute("""
-                    INSERT OR IGNORE INTO malware_signatures (hash, threat_name, source, date_added)
-                    VALUES (?, ?, ?, ?)
-                """, (file_hash, threat_name, source, datetime.now().isoformat()))
+                    INSERT INTO executive_ledger (
+                        timestamp, cpu_percent, memory_percent, 
+                        anomaly_score, prediction, context_status, action_taken
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                """, (
+                    datetime.now().isoformat(),
+                    event_data.get('cpu_percent', 0.0),
+                    event_data.get('memory_percent', 0.0),
+                    event_data.get('anomaly_score', 0.0),
+                    event_data.get('prediction', 'UNKNOWN'),
+                    event_data.get('L3_contextual_status', 'NORMAL'),
+                    event_data.get('L4_response_status', 'NONE')
+                ))
                 conn.commit()
         except sqlite3.Error as e:
-            print(f"[DB_ERROR] Failed to add hash: {e}")
+            print(f"[DB_ERROR] Failed to commit: {e}")
 
-    def is_hash_malicious(self, file_hash):
-        """Checks if a hash exists in our known-bad ledger."""
+    # --- THE SCHOLAR: This reads for L5 Learning ---
+    def get_learning_batch(self, limit=500):
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                cursor = conn.cursor()
+                cursor.execute("""
+                    SELECT cpu_percent, memory_percent FROM executive_ledger 
+                    WHERE context_status = 'NORMAL' 
+                    ORDER BY timestamp DESC LIMIT ?
+                """, (limit,))
+                return cursor.fetchall()
+        except sqlite3.Error as e:
+            return []
+
+    # --- THE ANTIBODY METHODS ---
+    def add_malware_hash(self, h, name, src):
         with sqlite3.connect(self.db_path) as conn:
-            cursor = conn.cursor()
-            cursor.execute("SELECT 1 FROM malware_signatures WHERE hash = ?", (file_hash,))
-            return cursor.fetchone() is not None
+            conn.execute("INSERT OR IGNORE INTO malware_signatures VALUES (?,?,?,?)", 
+                         (h, name, src, datetime.now().isoformat()))
+
+    def is_hash_malicious(self, h):
+        with sqlite3.connect(self.db_path) as conn:
+            return conn.execute("SELECT 1 FROM malware_signatures WHERE hash=?", (h,)).fetchone() is not None
+
+# The singleton instance used by all layers
 
 store = HybridStore()

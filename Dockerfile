@@ -13,7 +13,7 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /workspace
 
 # Copy requirements first for Docker layer caching
-COPY requirements.txt .
+COPY requirements-base.txt requirements.txt
 
 # Install Python dependencies
 RUN pip install --upgrade pip && \

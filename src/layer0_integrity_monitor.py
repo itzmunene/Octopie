@@ -3,6 +3,7 @@
 import hashlib
 import os
 import time
+
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 from src.database.hybrid_store import store
@@ -16,7 +17,7 @@ class IntegrityHandler(FileSystemEventHandler):
         print(f"[L0] New file detected: {file_path}")
         file_hash = self.get_file_hash(file_path)
         
-        if store.is_hash_malicious(file_hash):
+        if store.is_hash_malicious(file_hash): # type: ignore
             print(f"\n[L0/ALERT] !!! MALICIOUS SIGNATURE DETECTED !!!")
             print(f"FILE: {file_path}")
             print(f"HASH: {file_hash}")

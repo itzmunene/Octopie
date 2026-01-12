@@ -1,4 +1,4 @@
-# src/layer5_memory_learning.py (Refined for Hybrid DB)
+# src/layer5_memory_learning.py
 
 import pandas as pd
 from sklearn.svm import OneClassSVM
@@ -10,11 +10,11 @@ MODEL_PATH = "models/innate_ocsvm.pkl"
 def evolve_from_memory():
     print("[L5/EVOLUTION] Querying hybrid database for verified benign patterns...")
     
-    # Query the store for the latest 500 'Normal' events
-    batch = store.get_learning_batch(limit=500)
+    # This call will now work because store (HybridStore) has the method
+    batch = store.get_learning_batch(limit=500) # type: ignore
     
-    if len(batch) < 20:
-        print("[L5/EVOLUTION] Memory too shallow. Need more experience to evolve.")
+    if not batch or len(batch) < 20:
+        print("[L5/EVOLUTION] Memory too shallow. Need more experience (NORMAL logs) to evolve.")
         return
 
     # Convert to DataFrame for training
@@ -22,9 +22,9 @@ def evolve_from_memory():
     
     print(f"[L5/EVOLUTION] Integrating {len(df_learning)} experiences into the Innate Model...")
     
-    # Retrain (or adapt) the model
+    # Retrain the model on the new "Normal"
     new_model = OneClassSVM(gamma='auto', nu=0.05)
-    new_model.fit(df_learning)
+    new_model.fit(df_learning.values)
     
     # Update the 'Nervous System'
     joblib.dump(new_model, MODEL_PATH)
@@ -32,3 +32,29 @@ def evolve_from_memory():
 
 if __name__ == "__main__":
     evolve_from_memory()
+
+
+from src.database.hybrid_store import store
+
+def record_enterprise_state(l3_context, l4_response):
+    """
+    This is the function that POPULATES the DB.
+    It takes the contextual status and the response taken to create a record.
+    """
+    # Create the final payload for the database
+    # l3_context usually contains: cpu_percent, memory_percent, anomaly_score, context_status
+    
+    event_packet = {
+        **l3_context,
+        "L4_response_status": l4_response
+    }
+    
+    # COMMIT to the Hybrid Store
+    store.commit_event(event_packet) # type: ignore
+    
+    # Visual feedback in the terminal
+    status = l3_context.get('L3_contextual_status', 'UNKNOWN')
+    print(f"[L5/LEDGER] Experience Archived: {status} | Action: {l4_response}")
+
+# Example usage in the live loop:
+# record_enterprise_state(context_results, "SANDBOX_INITIATED")
