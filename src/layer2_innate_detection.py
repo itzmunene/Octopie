@@ -6,6 +6,7 @@ import argparse
 import time
 import json
 from pathlib import Path
+import joblib
 import numpy as np
 from sklearn.svm import OneClassSVM # type: ignore
 # Assumed utility functions
@@ -16,11 +17,21 @@ from src.utils.model_loader import save_model, load_model
 from src.utils.logging_manager import log_event
 
 MODEL_NAME = "innate_ocsvm"
-MODEL_PATH = Path("models") / f"{MODEL_NAME}.joblib"
-# Update: Data file should be the primary Layer 1 output file
+MODEL_PATH = Path("models/innate_ocsvm.pkl")# Update: Data file should be the primary Layer 1 output file
 DATA_FILE = Path("data/telemetry.jsonl") 
 
-# Function Removed: collect_baseline is no longer in Layer 2.
+def load_innate_model():
+    if not MODEL_PATH.exists():
+        raise FileNotFoundError(f"Neural weights missing at {MODEL_PATH}")
+    return joblib.load(MODEL_PATH)
+
+def score_telemetry(model, sample):
+    """Refactored as a function for engine.py"""
+    from src.utils.feature_encoder import batch_to_dataframe
+    df_sample = batch_to_dataframe([sample])
+    score = model.decision_function(df_sample.values)[0]
+    pred = model.predict(df_sample.values)[0]
+    return score, "ANOMALY" if pred == -1 else "NORMAL"
 
 def train_oneclass_svm(nu=0.05, kernel="rbf", gamma="scale"): # Removed 'records' argument
     # 1. Read the baseline data collected by Layer 1
@@ -104,12 +115,5 @@ if __name__ == "__main__":
         train_oneclass_svm() # No more arguments needed
     elif args.live:
         live_mode()  # type: ignore
-    else:
-        parser.print_help()
-
-    if args.train:
-        train_oneclass_svm() # No more arguments needed
-    elif args.live:
-        live_mode()
     else:
         parser.print_help()

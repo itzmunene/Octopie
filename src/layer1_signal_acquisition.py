@@ -44,6 +44,12 @@ def read_telemetry_jsonl(file_path: Path):
         print(f"[data_reader] Error: Telemetry file not found at {file_path}")
     return records
 
+def process_telemetry_sample(sample):
+    # Log to file for backup
+    log_event(sample, filename="telemetry.jsonl")
+    # Return the sample so the Engine can pass it to Layer 2 and eventually SQLite
+    return sample
+
 def run_profiler():
     """Reads the collected telemetry data and generates a detailed HTML profile report."""
     file_path = DATA_DIR / "telemetry.jsonl"

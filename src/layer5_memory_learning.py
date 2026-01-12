@@ -8,27 +8,21 @@ from src.database.hybrid_store import store
 MODEL_PATH = "models/innate_ocsvm.pkl"
 
 def evolve_from_memory():
-    print("[L5/EVOLUTION] Querying hybrid database for verified benign patterns...")
-    
-    # This call will now work because store (HybridStore) has the method
-    batch = store.get_learning_batch(limit=500) # type: ignore
+    # Only pull the specific features the SVM understands
+    batch = store.get_learning_batch(limit=500) 
     
     if not batch or len(batch) < 20:
-        print("[L5/EVOLUTION] Memory too shallow. Need more experience (NORMAL logs) to evolve.")
-        return
+        return "[L5] Not enough data."
 
-    # Convert to DataFrame for training
-    df_learning = pd.DataFrame(batch, columns=['cpu_percent', 'memory_percent'])
+    # Force feature alignment
+    df_learning = pd.DataFrame(batch)[['cpu_percent', 'memory_percent']]
     
-    print(f"[L5/EVOLUTION] Integrating {len(df_learning)} experiences into the Innate Model...")
-    
-    # Retrain the model on the new "Normal"
     new_model = OneClassSVM(gamma='auto', nu=0.05)
     new_model.fit(df_learning.values)
     
-    # Update the 'Nervous System'
-    joblib.dump(new_model, MODEL_PATH)
-    print("[L5/EVOLUTION] System has evolved. New neural weights deployed to L2.")
+    # Save using the unified .pkl path variable
+    joblib.dump(new_model, MODEL_PATH) 
+    print(f"[L5] Neural Evolution Complete. Weights saved to {MODEL_PATH}")
 
 if __name__ == "__main__":
     evolve_from_memory()
