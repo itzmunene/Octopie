@@ -26,11 +26,20 @@ def load_innate_model():
     return joblib.load(MODEL_PATH)
 
 def score_telemetry(model, sample):
-    """Refactored as a function for engine.py"""
+    """Refactored to enforce feature alignment"""
     from src.utils.feature_encoder import batch_to_dataframe
+    
+    # 1. Convert the raw sample (6 features) to a DataFrame
     df_sample = batch_to_dataframe([sample])
-    score = model.decision_function(df_sample.values)[0]
-    pred = model.predict(df_sample.values)[0]
+    
+    # 2. FILTER: Only keep the columns the model was trained on
+    # This matches the ['cpu_percent', 'memory_percent'] used in Layer 5 training
+    X_aligned = df_sample[['cpu_percent', 'memory_percent']]
+    
+    # 3. Score using only those 2 features
+    score = model.decision_function(X_aligned.values)[0]
+    pred = model.predict(X_aligned.values)[0]
+    
     return score, "ANOMALY" if pred == -1 else "NORMAL"
 
 def train_oneclass_svm(nu=0.05, kernel="rbf", gamma="scale"): # Removed 'records' argument

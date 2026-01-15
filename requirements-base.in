@@ -12,3 +12,5 @@ fastapi # Web framework that will help hold the multiple apps
 pydantic # For data validation
 uvicorn # ASGI server that will carry the code, handling multiple connections while maintaining speed
 streamlit # Primary UI framework
+
+plotly

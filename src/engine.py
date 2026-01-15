@@ -5,6 +5,7 @@ from src.layer2_innate_detection import load_innate_model, score_telemetry
 from src.layer3_contextual_detection import analyze_context
 from src.layer4_response_containment import take_protective_action
 from src.layer5_memory_learning import record_enterprise_state
+from src.database.hybrid_store import store
 
 def run_autonomous_engine():
     print("--- [OCTOPIE] AUTONOMOUS ENGINE STARTING ---")
@@ -39,3 +40,11 @@ def run_autonomous_engine():
 
 if __name__ == "__main__":
     run_autonomous_engine()
+
+def record_enterprise_state(l3_context, l4_response):
+    event_packet = {
+        **l3_context,
+        "action_taken": l4_response # Maps L4 reflex to the ledger
+    }
+    store.commit_event(event_packet)
+    print(f"📖 [L5] Event Archived to Ledger.")

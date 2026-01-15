@@ -3,44 +3,68 @@ import streamlit as st
 import pandas as pd
 import requests
 import time
+import plotly.express as px
 
+# --- Page Config ---
 st.set_page_config(page_title="Octopie Command", layout="wide")
-API_BASE = "http://127.0.0.1:8000"
 
-st.title("🐙 Octopie Autonomous Enterprise")
+# --- Custom Minimalist CSS (Matching your image) ---
+st.markdown("""
+    <style>
+    .main { background-color: #1e1e2e; color: #cdd6f4; }
+    .stMetric { background-color: #313244; padding: 15px; border-radius: 10px; border-left: 5px solid #f38ba8; }
+    div[data-testid="stTable"] { background-color: #181825; border-radius: 10px; }
+    </style>
+    """, unsafe_allow_html=True)
 
-# Layout: Sidebar for quick stats
-with st.sidebar:
-    st.header("System Vitals")
-    stats = requests.get(f"{API_BASE}/stats").json()
-    st.metric("Total Experiences", stats['total_events'])
-    st.metric("Antibodies (Sigs)", stats['signatures'])
-    st.success(f"Status: {stats['status']}")
+# --- Data Fetching ---
+def fetch_data(endpoint):
+    try:
+        response = requests.get(f"http://localhost:8000/{endpoint}")
+        return response.json()
+    except:
+        return None
 
-# Tabs for Multiple Capabilities
-tab_monitor, tab_malware, tab_evolution = st.tabs(["📈 Monitor", "🛡️ Malware Vault", "🧬 Evolution"])
+st.title("🐙 Octopie: Autonomous Defense System")
 
-with tab_monitor:
-    st.subheader("Executive Ledger")
-    ledger_data = requests.get(f"{API_BASE}/ledger").json()
-    if ledger_data:
-        df = pd.DataFrame(ledger_data)
-        st.line_chart(df.set_index('timestamp')['anomaly_score'])
-        st.dataframe(df, use_container_width=True)
-    else:
-        st.info("Ledger is empty. Run the simulator or main engine.")
+# --- Layout ---
+# 1. Top Row: Stats
+stats = fetch_data("stats")
+col1, col2, col3, col4, col5 = st.columns(5)
+if stats:
+    col1.metric("Total Events", stats['total_events'])
+    col2.metric("Antibodies", stats['signatures'])
+    col3.metric("L2 Status", "NOMINAL", delta="Innate")
+    col4.metric("L3 Context", "ACTIVE", delta="Adaptive")
+    col5.metric("L4 Reflex", "READY", delta="Containment")
 
-with tab_malware:
-    st.subheader("L0: Threat Signatures")
-    threats = requests.get(f"{API_BASE}/threats").json()
-    st.table(threats)
+# 2. Middle Row: The Pulse & Distribution
+col_main, col_side = st.columns([2, 1])
+ledger_data = fetch_data("ledger")
 
-with tab_evolution:
-    st.subheader("L5: Model Retraining")
-    st.write("Retrain the Innate OCSVM based on verified 'Normal' experiences.")
-    if st.button("Trigger Neural Evolution"):
-        st.warning("Feature coming: Connecting to L5 evolution script...")
+if ledger_data:
+    df = pd.DataFrame(ledger_data)
+    
+    with col_main:
+        st.subheader("Neural Anomaly Pulse (L2)")
+        # Creating the line chart from your design
+        fig = px.line(df, x='timestamp', y='anomaly_score', 
+                     template="plotly_dark", color_discrete_sequence=['#f38ba8'])
+        fig.update_layout(plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)')
+        st.plotly_chart(fig, use_container_width=True)
 
-# Auto-refresh
-time.sleep(2)
+    with col_side:
+        st.subheader("Threat Distribution")
+        # Horizontal bar chart matching the right side of your design
+        fig_bar = px.bar(df, y='context_status', orientation='h', 
+                         template="plotly_dark", color='context_status')
+        st.plotly_chart(fig_bar, use_container_width=True)
+
+# 3. Bottom Row: Ledger
+st.subheader("Executive Ledger (L5 Memory)")
+if ledger_data:
+    st.table(df[['timestamp', 'cpu_percent', 'anomaly_score', 'context_status', 'action_taken']].head(10))
+
+# --- Auto-refresh ---
+time.sleep(1)
 st.rerun()
